@@ -9,7 +9,12 @@ module Sidekiq
       # @return [<any>] job args
       def call(_worker, job, _queue)
         job['args'] = ActiveJob::Arguments.deserialize(job['args'])
-        yield
+        begin
+          yield
+        rescue Exception => e
+          # put the args back how they were
+          job['args'] = ActiveJob::Arguments.serialize(job['args'])
+        end
       end
     end
   end
